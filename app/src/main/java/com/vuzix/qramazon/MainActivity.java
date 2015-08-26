@@ -1,19 +1,22 @@
 package com.vuzix.qramazon;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.hardware.Camera;
+import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.KeyEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
+import android.view.View;
 import android.view.WindowManager;
 import android.widget.Toast;
 
+import com.google.zxing.BarcodeFormat;
 import com.google.zxing.BinaryBitmap;
 import com.google.zxing.MultiFormatReader;
+import com.google.zxing.NotFoundException;
 import com.google.zxing.PlanarYUVLuminanceSource;
-import com.google.zxing.ReaderException;
 import com.google.zxing.Result;
 import com.google.zxing.common.HybridBinarizer;
 
@@ -22,16 +25,26 @@ import java.io.IOException;
 public class MainActivity extends Activity implements SurfaceHolder.Callback {
     private static final String TAG = MainActivity.class.getSimpleName();
 
+    private String mAmazonUrl;
+
     private Camera mCamera;
+
+    private SurfaceView mSurfaceView;
+
+    private final MultiFormatReader mMultiFormatReader = new MultiFormatReader();
 
     private final Camera.AutoFocusCallback mAutoFocusCallback = new Camera.AutoFocusCallback() {
 
         @Override
         public void onAutoFocus(boolean success, Camera camera) {
             if (success) {
-                mCamera.setOneShotPreviewCallback(mPreviewCallback);
+                camera.setOneShotPreviewCallback(mPreviewCallback);
             } else {
                 Toast.makeText(getApplicationContext(), "focus failed.", Toast.LENGTH_SHORT).show();
+            }
+
+            if (mCamera != null) {
+                mCamera.autoFocus(this);
             }
         }
     };
@@ -44,43 +57,53 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
                     size.height, 0, 0, size.width, size.height, false);
 
             BinaryBitmap bitmap = new BinaryBitmap(new HybridBinarizer(source));
-            MultiFormatReader multiFormatReader = new MultiFormatReader();
             try {
-                Result rawResult = multiFormatReader.decode(bitmap);
+                Result rawResult = mMultiFormatReader.decode(bitmap);
 
-                Toast.makeText(getApplicationContext(), rawResult.getText(), Toast.LENGTH_LONG)
-                        .show();
-            } catch (ReaderException e) {
-                Toast.makeText(getApplicationContext(), e.getMessage(), Toast.LENGTH_SHORT).show();
+                if (rawResult.getBarcodeFormat() == BarcodeFormat.EAN_13) {
+                    search(rawResult.getText());
+                }
+            } catch (NotFoundException e) {
+                // do nothing
             }
         }
     };
+
+    private void search(String ean13) {
+        String url = mAmazonUrl + ean13;
+        Intent intent = new Intent(Intent.ACTION_VIEW);
+        intent.setData(Uri.parse(url));
+        startActivity(intent);
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
-        Log.d(TAG, "onCreate");
+        mAmazonUrl = getString(R.string.amazon_url);
+
+        mSurfaceView = new SurfaceView(this);
+        mSurfaceView.getHolder().addCallback(this);
+        setContentView(mSurfaceView);
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        Log.d(TAG, "onResume");
 
-        SurfaceView surfaceView = new SurfaceView(this);
-        surfaceView.getHolder().addCallback(this);
-
-        setContentView(surfaceView);
+        // http://stackoverflow.com/questions/11495842/how-surfaceholder-callbacks-are-related-to-activity-lifecycle
+        mSurfaceView.setVisibility(View.VISIBLE);
     }
 
     @Override
     protected void onPause() {
         super.onPause();
-        Log.d(TAG, "onPause");
+
+        mSurfaceView.setVisibility(View.INVISIBLE);
 
         if (mCamera != null) {
+            mCamera.cancelAutoFocus();
             mCamera.release();
             mCamera = null;
         }
@@ -88,14 +111,10 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
 
     @Override
     public void surfaceCreated(SurfaceHolder surfaceHolder) {
-        Log.d(TAG, "surfaceCreated");
-
         mCamera = Camera.open();
 
         try {
             mCamera.setPreviewDisplay(surfaceHolder);
-            mCamera.setDisplayOrientation(180); // inverse
-
         } catch (IOException e) {
             Log.e(TAG, "IOException", e);
         }
@@ -103,27 +122,15 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
 
     @Override
     public void surfaceChanged(SurfaceHolder surfaceHolder, int format, int width, int height) {
-        Log.d(TAG, "surfaceChanged");
         mCamera.startPreview();
+        mCamera.autoFocus(mAutoFocusCallback);
     }
 
     @Override
     public void surfaceDestroyed(SurfaceHolder surfaceHolder) {
-        Log.d(TAG, "surfaceDestroyed");
         if (mCamera != null) {
             mCamera.release();
             mCamera = null;
         }
-    }
-
-    @Override
-    public boolean onKeyDown(int keyCode, KeyEvent event) {
-        switch (keyCode) {
-            case KeyEvent.KEYCODE_ENTER:
-                mCamera.autoFocus(mAutoFocusCallback);
-                break;
-        }
-
-        return super.onKeyDown(keyCode, event);
     }
 }
