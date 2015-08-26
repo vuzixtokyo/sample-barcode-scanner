@@ -1,4 +1,4 @@
-package com.vuzix.qramazon;
+package com.example.barcodescanner.android;
 
 import android.app.Application;
 import android.test.ApplicationTestCase;

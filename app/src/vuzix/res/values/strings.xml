@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">BarcodeScanner</string>
+    <string name="app_name">JAN Scan</string>
 
     <string name="amazon_url" formatted="false">http://www.amazon.com/s/field-keywords=</string>
 
