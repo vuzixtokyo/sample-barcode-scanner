@@ -11,10 +11,23 @@ android {
         versionCode 1
         versionName "1.0"
     }
+
+    signingConfigs {
+        // debug {
+        //     storeFile file("debug.keystore")
+        // }
+
+        release
+    }
+
     buildTypes {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+
+            if (project.hasProperty('storeFile')) {
+                signingConfig signingConfigs.release
+            }
         }
     }
     productFlavors {
@@ -26,8 +39,23 @@ android {
             versionName "1.0.1"
         }
     }
+    lintOptions {
+        abortOnError false
+    }
 }
 
+if (project.hasProperty('storeFile')) {
+    android.signingConfigs.release.storeFile = file(storeFile)
+}
+if (project.hasProperty('storePassword')) {
+    android.signingConfigs.release.storePassword = storePassword
+}
+if (project.hasProperty('keyAlias')) {
+    android.signingConfigs.release.keyAlias = keyAlias
+}
+if (project.hasProperty('keyPassword')) {
+    android.signingConfigs.release.keyPassword = keyPassword
+}
 dependencies {
     compile fileTree(include: ['*.jar'], dir: 'libs')
     compile 'com.google.zxing:core:3.2.1'
