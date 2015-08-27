@@ -1,6 +1,8 @@
 <resources>
     <string name="app_name">BarcodeScanner</string>
 
+    <string name="license_title">Open Source License</string>
+
     <string name="amazon_url" formatted="false">http://www.amazon.com/s/field-keywords=</string>
 
 </resources>

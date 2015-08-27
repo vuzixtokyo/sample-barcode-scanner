@@ -6,6 +6,7 @@ import android.hardware.Camera;
 import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
@@ -133,4 +134,13 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
             mCamera = null;
         }
     }
+
+    @Override
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        if (keyCode == KeyEvent.KEYCODE_MENU) {
+            LicenseDialog.create(this).show();
+        }
+        return super.onKeyDown(keyCode, event);
+    }
+
 }
