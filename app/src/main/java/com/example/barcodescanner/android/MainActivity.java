@@ -130,6 +130,7 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
     @Override
     public void surfaceDestroyed(SurfaceHolder surfaceHolder) {
         if (mCamera != null) {
+            mCamera.cancelAutoFocus();
             mCamera.release();
             mCamera = null;
         }

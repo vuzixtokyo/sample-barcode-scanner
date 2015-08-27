@@ -22,6 +22,8 @@ android {
         }
         vuzix {
             applicationId 'com.vuzix.janscan.android'
+            versionCode 101
+            versionName "1.0.1"
         }
     }
 }
