@@ -110,6 +110,5 @@
     <orderEntry type="jdk" jdkName="Android API 15 Platform" jdkType="Android SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="library" exported="" name="core-3.2.1" level="project" />
-    <orderEntry type="library" exported="" name="android-core-3.2.1" level="project" />
   </component>
 </module>
